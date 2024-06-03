@@ -1,0 +1,151 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+enum VehicleSize { SMALL, MEDIUM, LARGE }
+
+record Vehicle(String licensePlate, VehicleSize size) {
+}
+
+class ParkingLot {
+    private final ArrayList<Vehicle> vehicles;
+    private final VehicleSize size;
+
+    public ParkingLot(VehicleSize size) {
+        this.vehicles = new ArrayList<>();
+        this.size = size;
+    }
+
+    public boolean parkVehicle(Vehicle vehicle) {
+        if (vehicle.size() == size && vehicles.size() < 5) {
+            vehicles.add(vehicle);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean unparkVehicle(String licensePlate) {
+        for (Vehicle vehicle : vehicles) {
+            if (vehicle.licensePlate().equals(licensePlate)) {
+                vehicles.remove(vehicle);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getAvailableSpots() {
+        return 5 - vehicles.size();
+    }
+}
+
+class Level {
+    private final String levelType;
+    private final ArrayList<ParkingLot> parkingLots;
+
+    public Level(String levelType) {
+        this.levelType = levelType;
+        this.parkingLots = new ArrayList<>();
+
+        for (int i = 0; i < 5; i++) {
+            if (levelType.equalsIgnoreCase("small")) {
+                parkingLots.add(new ParkingLot(VehicleSize.SMALL));
+            } else if (levelType.equalsIgnoreCase("medium")) {
+                parkingLots.add(new ParkingLot(VehicleSize.MEDIUM));
+            } else if (levelType.equalsIgnoreCase("large")) {
+                parkingLots.add(new ParkingLot(VehicleSize.LARGE));
+            }
+        }
+    }
+
+    public boolean parkVehicle(Vehicle vehicle) {
+        for (ParkingLot lot : parkingLots) {
+            if (lot.parkVehicle(vehicle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean unparkVehicle(String licensePlate) {
+        for (ParkingLot lot : parkingLots) {
+            if (lot.unparkVehicle(licensePlate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void printParkingStatus() {
+        System.out.println("Level " + levelType + " Parking Status:");
+        for (ParkingLot lot : parkingLots) {
+            System.out.println("Parking Lot " + (parkingLots.indexOf(lot) + 1) + ": " + lot.getAvailableSpots() + " spots available");
+        }
+    }
+}
+
+class ParkingSystem {
+    private final ArrayList<Level> levels;
+
+    public ParkingSystem() {
+        levels = new ArrayList<>();
+
+        levels.add(new Level("small"));
+        levels.add(new Level("medium"));
+        levels.add(new Level("large"));
+    }
+
+    public boolean parkVehicle(Vehicle vehicle) {
+        for (Level level : levels) {
+            if (level.parkVehicle(vehicle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean unparkVehicle(String licensePlate) {
+        for (Level level : levels) {
+            if (level.unparkVehicle(licensePlate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void printParkingStatus() {
+        for (Level level : levels) {
+            level.printParkingStatus();
+        }
+    }
+
+    public static void main(String[] args) {
+        ParkingSystem parkingSystem = new ParkingSystem();
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Enter the license plate number and vehicle size (SMALL, MEDIUM, LARGE), or type 'status' to print the parking status:");
+            String input = scanner.nextLine();
+
+            if (input.equalsIgnoreCase("status")) {
+                parkingSystem.printParkingStatus();
+            } else {
+                String[] parts = input.split(" ");
+                if (parts.length == 2) {
+                    String licensePlate = parts[0];
+                    String sizeInput = parts[1].toUpperCase();
+                    VehicleSize vehicleSize;
+                    try {
+                        vehicleSize = VehicleSize.valueOf(sizeInput);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Invalid vehicle size.");
+                        continue;
+                    }
+                    Vehicle vehicle = new Vehicle(licensePlate, vehicleSize);
+                    parkingSystem.parkVehicle(vehicle);
+                } else {
+                    System.out.println("Invalid input.");
+                }
+            }
+        }
+    }
+}
